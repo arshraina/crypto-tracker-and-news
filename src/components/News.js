@@ -1,3 +1,4 @@
+// News.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -9,6 +10,8 @@ import {
   ThemeProvider,
   CardMedia,
 } from "@material-ui/core";
+
+import { apiKey, apiUrl } from "../config/api"; // Import API key and URL
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,18 +52,21 @@ const useStyles = makeStyles((theme) => ({
 const News = ({ coinName }) => {
   const [news, setNews] = useState([]);
   const classes = useStyles();
-  const uniqueLinks = new Set();
 
   useEffect(() => {
-    const apiKey = "3b7c86c1e2dc440e9d9bb323b8b280eb";
-    const apiUrl = `https://newsapi.org/v2/everything?q=${coinName}%20AND%20cryptocurrency&apiKey=${apiKey}`;
+    const queryParams = new URLSearchParams({
+      q: `${coinName} AND cryptocurrency`,
+      apiKey: apiKey,
+    });
+
+    const fullApiUrl = `${apiUrl}?${queryParams.toString()}`;
 
     axios
-      .get(apiUrl)
+      .get(fullApiUrl)
       .then((response) => {
         const allArticles = response.data.articles;
+        const uniqueLinks = new Set();
 
-        // Prioritize articles with the coinName in the title
         const filteredNews = allArticles
           .filter((article) => {
             return article.urlToImage && !article.url.includes("biztoc.com");
@@ -84,7 +90,6 @@ const News = ({ coinName }) => {
           }
         }
 
-        // Slice the first 10 articles
         setNews(uniqueNews.slice(0, 10));
       })
       .catch((error) => {
